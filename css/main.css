@@ -99,12 +99,45 @@ body {
     background: #F0D9D9;
     margin-left: auto;
     margin-right: auto;
-    padding-top: 50px;
+    padding: 25px;
 }
 
-.horizontal-display li {
+.horizontal-list {
+    display: inline-block;
+    padding: 0px;
+}
+
+.horizontal-list li {
     list-style-type: none;
     display: inline;
+}
+
+.horizontal-list form {
+    list-style-type: none;
+    display: inline;
+}
+
+/* displaying users in list */
+/* ============ */
+.user-display-block {
+	display: inline-block;
+    text-align: center;
+    margin: 20px;
+    /*margin-right: 10px;*/
+}
+
+.user-display-block img {
+    display: block;
+    margin: 5px auto;
+}
+/* ============ */
+
+.highlight-container {
+    padding: 10px 14px;
+    background-color: #F7F7F9;
+    border: 1px solid #E1E1E8;
+    border-radius: 4px;
+    text-align: center;
 }
 
 
