@@ -15,26 +15,31 @@ function changeText() {
 
 
 
+// Initialize
+// =================
+var app = { model:{}, view:{}, controller:{} }; 
+
+
+
+
 // Models
 // =================
-function User (username, partner, cohort) {
+function User (username, partner, cohort, photo) {
   this.username = username;
   this.partner = partner; // boolean
   this.cohort = cohort;
+  this.photo = photo; // string link
 }
 
-User.prototype.hasPartner = function () {
-  return (this.partner);
-};
-
-User.prototype.update = function (username, partner, cohort) {
+User.prototype.update = function (username, partner, photo, cohort) {
 
   // update properties
   this.username = username;
   this.partner = partner;
+  this.photo = photo;
   this.cohort = cohort;
   
-  cohort1.push(this);
+  cohort.push(this);
 };
 
 // cohort - list of users
@@ -44,7 +49,7 @@ var cohort1 = [];
 var cohortList = [];
 cohortList.push(cohort1);
 
-
+// ### Use object instead of array? ###
 // // List of students in a cohort
 // function UserList (cohort, userList) {
 //   this.cohort = cohort; // number
@@ -63,9 +68,52 @@ function createTestData (amount) {
     cohort1.push(new User(
       "User" + i,
       false,
-      1
+      1,
+      "https://icons.iconarchive.com/icons/seanau/user/128/Thief-icon.png"
     ));
   }
 }
 
-createTestData(5);
+createTestData(15);
+
+
+
+
+// View
+// =================
+app.view.displayUsers = function (users) {
+  
+  // get the unordered list 
+  var list = document.getElementById("user-list");
+  
+  for (var i = 0; i < users.length; i++) {
+    // create li, div, p, and img
+    
+    var listItem = document.createElement("li");
+    var userContainer = document.createElement("div");
+    userContainer.className = "user-display-block";
+    
+    
+    // username is <p> so needs text node 
+    var username = document.createElement("p");
+    username.appendChild(document.createTextNode(users[i].username));
+  
+    var img = document.createElement("img");
+    img.src = users[i].photo;
+    img.alt = users[i].username;
+    
+    // append img <li> and username <p> to container <div>
+    userContainer.appendChild(img);
+    userContainer.appendChild(username);
+    
+    // append to the list item <li>
+    listItem.appendChild(userContainer);
+  
+    // append list item to the <ul>
+    list.appendChild(listItem);
+  }
+
+};
+
+
+
