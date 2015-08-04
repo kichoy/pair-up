@@ -1,68 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Pair Up!</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="x-ua-compatible" content="ie=edge">
+		<title>Pair Up!</title>
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="apple-touch-icon" href="apple-touch-icon.png">
-        <link rel="icon" href="favicon.ico" type="image/x-icon">
-        
-        <script src="https://cdn.firebase.com/js/client/2.2.7/firebase.js"></script>
-        
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-        <link rel="stylesheet" href="css/main.css">
-    </head>
-    <body>
-        
-        <div class="container">
-            
-            <div class="text-center">
-                <h1>Pair Up!</h1>
-                <p id="slogan">Do you want us to pair you? (Random)</p>
-                <div class="horizontal-list">
-                    <form action="#" method="POST">
-                        <input type="button" class="btn btn-default btn-lg" id="find-button" onclick="changeText()" name="pair-up" value="Yes, I'm looking for a partner!"/>
-                    </form>
-                    <!--<button id="find-button" type="button" onclick="changeText()">I do!</button>-->
-                    <form action="#" method="POST">
-                        <input type="button" class="btn btn-default btn-lg" id="already-found-button" name="already-found-partner" value="No, I've found a partner."/>
-                    </form>                    
-                </div>
-            </div>
-            
-            <div class="text-left">
-                <h2>Looking For Partners</h2>
-                <div class="highlight-container">
-                    <ul id="user-list" class="horizontal-list">
-                    </ul>                    
-                </div>
-                
-                <h2>Taken</h2>
-                <div class="highlight-container">
-                    <ul class="horizontal-list">
-                        <li>
-                            <div class="user-display-block">
-                				<img src="https://icons.iconarchive.com/icons/seanau/user/128/Thief-icon.png" alt="sometext">
-                				<p>Name</p>
-                			</div>
-                        </li>
-                        <li>
-                            <div class="user-display-block">
-                				<img src="https://icons.iconarchive.com/icons/seanau/user/128/Thief-icon.png" alt="sometext">
-                				<p>Name</p>
-                			</div>
-                        </li>
-                    </ul>                    
-                </div>
-            </div>
-            
-        </div>
+		<link rel="apple-touch-icon" href="apple-touch-icon.png">
+		<link rel="icon" href="favicon.ico" type="image/x-icon">
+		
+		<script src="https://cdn.firebase.com/js/client/2.2.7/firebase.js"></script>
+		
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/main.css">
+		
+	</head>
+	<body>
+		
+		<!-- Fixed navbar -->
+		<nav class="navbar navbar-default navbar-fixed-top" style="background-color:rgba(240, 217, 217, 0.7);">
+			<div class="container">
+				<div class="navbar-header">
+					<!-- Menu icon -->					
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#">Pair Up</a>
+				</div>
+				
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+						<li><a href="#">Home</a></li>
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><a id="github-login" href="#">Sign in with GitHub</a></li>
+					</ul>
+				</div><!--/.nav-collapse -->
+			</div>
+		</nav>
+		
+		<div class="container" style="padding:20px;">
+			
+			<div class="row">
+  				<div class="col-md-6 col-md-offset-3">
+  					<div class="text-center">
+						<h1>Pair Up!</h1>
+						<p id="slogan">Do you want us to pair you? (Random)</p>
+						<div class="horizontal-list">
+							<button id="pair-button" class="btn btn-default btn-lg">Yes, I'm looking for a partner!</button>
+							<!--<input type="button" class="btn btn-default btn-lg" id="pair-button" name="pair-up" value="Yes, I'm looking for a partner!"/>-->
+						</div>
+					</div>
+  				</div>
+  				
+  				<div class="col-md-3">
+  					<div class="list-group" style="padding-top:20px;">
+  						<a href="#" class="list-group-item active">
+					    	<h4 class="list-group-item-heading">Partner Request</h4>
+					    	<p class="list-group-item-text">Joe wants to be your partner!</p>
+					    	<p class="list-group-item-text">(Click to pair)</p>
+					    </a>
+					</div>
+  				</div>
+			</div>
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-        <script src="js/main.js"></script>
-        
-    </body>
+			<div class="row">
+				<div class="text-left">
+					<h2>Looking For Partners</h2>
+					<div class="highlight-container">
+						<ul id="user-list" class="horizontal-list">
+						</ul>                    
+					</div>
+					
+					<h2>Taken</h2>
+					<div class="highlight-container">
+						<ul class="horizontal-list">
+							<li>
+								<div class="user-display-block">
+									<img src="img/ninja-icon-avatar.png" alt="sometext">
+									<p>Name</p>
+									<button id="username3" class="btn btn-default">Request Partner</button>
+								</div>
+							</li>
+							<li>
+								<div class="user-display-block">
+									<img src="img/ninja-icon-avatar.png" alt="sometext">
+									<p>Name</p>
+									<button id="username3" class="btn btn-default">Request Partner</button>
+								</div>
+							</li>
+						</ul>                    
+					</div>
+				</div>				
+			</div>
+
+		</div>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		<script src="js/main.js"></script>
+		
+	</body>
 </html>
