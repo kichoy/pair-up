@@ -37,7 +37,11 @@
 						<li><a href="#">Home</a></li>
 					</ul>
 					<ul class="nav navbar-nav navbar-right">
-						<li><a id="github-login" href="#">Sign in with GitHub</a></li>
+						<!--<a class="navbar-brand" href="#"><img src="img/GitHub-Mark-32px.png"></a>-->
+						<button id="github-login" type="button" class="btn btn-default navbar-btn navbar-icon"><img src="img/GitHub-Mark-32px.png"> Sign in with GitHub</button>
+						<!--<li><a id="github-login" href="#"><img src="img/GitHub-Mark-32px.png"> Szine Een weid Github</a></li>-->
+						<p id="username-display" class="navbar-text"></p>
+						<button id="logout" type="button" class="btn btn-default navbar-btn">Logout</button>
 					</ul>
 				</div><!--/.nav-collapse -->
 			</div>
@@ -49,11 +53,7 @@
   				<div class="col-md-6 col-md-offset-3">
   					<div class="text-center">
 						<h1>Pair Up!</h1>
-						<p id="slogan">Do you want us to pair you? (Random)</p>
-						<div class="horizontal-list">
-							<button id="pair-button" class="btn btn-default btn-lg">Yes, I'm looking for a partner!</button>
-							<!--<input type="button" class="btn btn-default btn-lg" id="pair-button" name="pair-up" value="Yes, I'm looking for a partner!"/>-->
-						</div>
+						<p id="slogan">Looking for a new partner?</p>
 					</div>
   				</div>
   				
