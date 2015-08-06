@@ -94,39 +94,6 @@ $(document).ready(function () {
   // ============================================
   // Show stuff
   // ============================================
-  function displayUsers (users) {
-    
-    // get the unordered list 
-    var list = document.getElementById("user-list");
-    
-    for (var i = 0; i < users.length; i++) {
-      // create li, div, p, and img
-      
-      var listItem = document.createElement("li");
-      var userContainer = document.createElement("div");
-      userContainer.className = "user-display-block";
-      
-      
-      // username is <p> so needs text node 
-      var username = document.createElement("p");
-      username.appendChild(document.createTextNode(users[i].username));
-    
-      var img = document.createElement("img");
-      img.src = users[i].photo;
-      img.alt = users[i].username;
-      
-      // append img <li> and username <p> to container <div>
-      userContainer.appendChild(img);
-      userContainer.appendChild(username);
-      
-      // append to the list item <li>
-      listItem.appendChild(userContainer);
-    
-      // append list item to the <ul>
-      list.appendChild(listItem);
-    }
-  
-  }
   
   function displayUser (user, userKey) {
     // get the unordered list 
@@ -222,7 +189,7 @@ $(document).ready(function () {
     );
 
     var singleUserRef = usersRef.child(authData.uid);
-    // singleUserRef.set(user);
+    singleUserRef.set(user);
   }
   
   // Callback to handle the result of the authentication
@@ -303,11 +270,13 @@ $(document).ready(function () {
 
   // Check if user is new 
   function isNewUser (authData) {
-    if (usersRef.child(authData.uid)) {
-      return false;
-    } else {
-      return true;
-    }
+    var answer; // answer to question: is the user new? 
+    var userRef = usersRef.child(authData.uid); // ref to user key in db
+    userRef.once('value', function (snapshot) {
+      // if (user is null), then yes, user is new
+      answer = snapshot.val() === null? true : false;
+    });
+    return answer;
   }
   
   // Called whenever user state changes
