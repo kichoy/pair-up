@@ -72,6 +72,7 @@ $(document).ready(function () {
   //   }
   // });
   
+  // On landing, immediately grab users
   usersRef.on('child_added', add);
   
   function add (userSnapshot) {
@@ -80,12 +81,6 @@ $(document).ready(function () {
     var userKey = userSnapshot.key();
     // display user on list
     displayUser(user, userKey);
-  }
-  
-  function getUsersByCohort (cohortNumber) {
-    // not yet implemented or used
-    // fetch users by cohort
-    displayUser();
   }
   
   
@@ -99,7 +94,8 @@ $(document).ready(function () {
     // get the unordered list 
     var list = document.getElementById("user-list");
     
-    // create li, div, p, button, and img
+    // Create elements: li, div, p, button, and img
+    // =====================
     var listItem = document.createElement("li");
     var userContainer = document.createElement("div");
     userContainer.className = "user-display-block";
@@ -121,7 +117,12 @@ $(document).ready(function () {
     button.onclick = function() {
       sendPairRequest(this.id);
     };
+    // =====================
     
+    
+    
+    // Append elements
+    // =====================
     // append img <li>, username <p> and button to container <div>
     userContainer.appendChild(img);
     userContainer.appendChild(username);
@@ -129,21 +130,31 @@ $(document).ready(function () {
     
     // append to the list item <li>
     listItem.appendChild(userContainer);
+    // =====================
     
+    // finally, display the list item 
     // append list item to the <ul>
     list.appendChild(listItem);    
   }
   
-  function displayPartnerRequest (partnerName) {
+  function displayPairRequest (partnerName, requestId) {
 		// partner request display
+		
+		// Create elements
+		// =====================
 		var container = document.getElementById("partner-requests");
 		var listItem = document.createElement("div");
 		listItem.className = "list-group";
 		listItem.style.paddingTop = "20px";
 		
 		var linkContainer = document.createElement("a");
+		linkContainer.id = requestId;
 		linkContainer.href = "#";
 		linkContainer.className = "list-group-item active";
+		// click event - accept request
+		linkContainer.onclick = function () {
+		  acceptRequest(this.id);
+		};
 		
 		var requestHeader = document.createElement("h4");
 		requestHeader.className = "list-group-item-heading";
@@ -152,13 +163,85 @@ $(document).ready(function () {
 		var requestMessage = document.createElement("p");
 		requestMessage.className = "list-group-item-text";
 		requestMessage.innerHTML = "Wants to be your partner.<br>(Click to pair)";
+		// =====================
 		
+		
+		// Append elements
+		// =====================
 		linkContainer.appendChild(requestHeader);
 		linkContainer.appendChild(requestMessage);
 		
 		listItem.appendChild(linkContainer);
+		// =====================
 		
+		
+		// finally display the list item 
 		container.appendChild(listItem);    
+  }
+  
+  function displayDashHeader (username) {
+    // Show user info in header/navbar
+    
+    // Create elements
+		var githubLoginButton = document.getElementById('github-login');
+		var usernameDisplay = document.getElementById("username-display");
+		// Show username
+		usernameDisplay.innerHTML = "Welcome, " + "<b>" + username + "</b>";
+		// Hide login button
+		githubLoginButton.style.display = "none";    
+  }
+  
+  // Show info specific to user
+  function showDash (authData) {
+  	// Check the current user
+  	var user = authData;
+  	var userRef;
+  
+  	// If no current user
+  	if (!user) {
+  		window.location.href = '#/';
+  		return;
+  	}
+  
+  	// Load user info
+  	userRef = usersRef.child(user.uid);
+  	// get data of user
+  	userRef.once('value', function (snap) {
+  		var user = snap.val();
+  		if (!user) {
+  			return;
+  		}
+  		// show username in header/navbar
+      displayDashHeader(user.username);
+  		
+  		// show requests
+  		// =====================
+  		var requestsRef = userRef.child("requests");
+  		// check if there are any requests
+  		// get data of requests object
+      requestsRef.once('value', function (snapshot) {
+        // if requests exist
+        if (snapshot.val()) {
+          // iterate the requests
+          requestsRef.on("child_added", function (snapshot) {
+            var requestId = snapshot.key();
+            var request = snapshot.val();
+            
+    		    // grab senders username (not id)
+    		    var senderUsername;
+    		    // get data of sender 
+    		    usersRef.child(request.senderId).once("value", function (data) {
+    		      senderUsername = data.val().username;
+    		    });
+            
+            // display the request
+            displayPairRequest(senderUsername, requestId);
+          });
+        }
+      });
+      // =====================
+  	});
+  
   }
   
   
@@ -178,6 +261,23 @@ $(document).ready(function () {
     firebaseRef.unauth();
   };  
   
+  // Github User OAuth login
+  function githubLogin () {
+    firebaseRef.authWithOAuthPopup("github", authHandler);
+  }
+  
+  // Check if user is new 
+  function isNewUser (authData) {
+    var answer; // answer to question: is the user new? 
+    var userRef = usersRef.child(authData.uid); // ref to user key in db
+    // get data of user
+    userRef.once('value', function (snapshot) {
+      // if (user is null), then yes, user is new
+      answer = snapshot.val() === null? true : false;
+    });
+    return answer;
+  }
+
   // Save user to db
   function saveUser (authData) {
     var user = new User (
@@ -192,6 +292,9 @@ $(document).ready(function () {
     singleUserRef.set(user);
   }
   
+  
+  // Auth 
+  // =====================
   // Callback to handle the result of the authentication
   function authHandler (error, authData) {
     if (error) {
@@ -215,70 +318,6 @@ $(document).ready(function () {
     }
   }
   
-  // Github User OAuth login
-  function githubLogin () {
-    firebaseRef.authWithOAuthPopup("github", authHandler);
-  }
-  
-  // Show info specific to user
-  function showDash (authData) {
-  	// Check the current user
-  	var user = authData;
-  	var userRef;
-  
-  	// If no current user
-  	if (!user) {
-  		window.location.href = '#/';
-  		return;
-  	}
-  
-  	// Load user info
-  	userRef = usersRef.child(user.uid);
-  	userRef.once('value', function (snap) {
-  		var user = snap.val();
-  		if (!user) {
-  			return;
-  		}
-  		// show dash info in header/navbar
-  		var githubLoginButton = document.getElementById('github-login');
-  		var usernameDisplay = document.getElementById("username-display");
-  		usernameDisplay.innerHTML = "Welcome, " + "<b>" + user.username + "</b>";
-  		githubLoginButton.style.display = "none";
-  		
-  		// show requests
-  		var requestsRef = userRef.child("requests");
-  		// if there are any requests
-  		if (requestsRef) {
-  		  // iterate each request
-  		  requestsRef.on("child_added", function (snapshot) {
-  		    var request = snapshot.val();
-  		    
-  		    // grab senders username (not id)
-  		    var senderRef = usersRef.child(request.senderId);
-  		    var senderUsername;
-  		    senderRef.once("value", function (data) {
-  		      senderUsername = data.val().username;
-  		    });
-  		    
-  		    displayPartnerRequest(senderUsername); // display the request
-  		  });
-  		}
-  		
-  	});
-  
-  }
-
-  // Check if user is new 
-  function isNewUser (authData) {
-    var answer; // answer to question: is the user new? 
-    var userRef = usersRef.child(authData.uid); // ref to user key in db
-    userRef.once('value', function (snapshot) {
-      // if (user is null), then yes, user is new
-      answer = snapshot.val() === null? true : false;
-    });
-    return answer;
-  }
-  
   // Called whenever user state changes
   // Show user-dash if logged in, else remove user-dash info
   function authDataCallback (authData) {
@@ -296,23 +335,9 @@ $(document).ready(function () {
       console.log("User is logged out");
     }
   }
-  
 
   // Called on landing and whenever auth state changes
   firebaseRef.onAuth(authDataCallback); // Whenever auth state changes, call
-  
-  
-  // var authData = firebaseRef.getAuth();
-  // if (authData) {
-  //   showDash(authData);
-  //   console.log("User " + authData.uid + " is logged in with " + authData.provider);
-  // } else {
-  //   console.log("User is logged out");
-  // }
-
-  
-  
-  
   
   
   
@@ -327,35 +352,67 @@ $(document).ready(function () {
     
     // if user exists
     if (currentUserAuthData) {
-      console.log(currentUserAuthData.uid);
-      
-      // grab recipient user ref
-      var recipientUserRef = usersRef.child(recipientId);
       // create pair request
       var request = new PairRequest(currentUserAuthData.uid, recipientId); 
       
+      // grab recipient user ref
+      var recipientUserRef = usersRef.child(recipientId);      
       // send pair request - attatch to recipient
       recipientUserRef.child("requests").push(request);
       
-      alert("Request sent to: " + recipientId);      
+      var recipientUsername;
+      // get data of recipient user
+      recipientUserRef.once('value', function (snapshot) {
+        recipientUsername = snapshot.val().username;
+      });
+      
+      alert("Request sent to: " + recipientUsername);
+    } else {
+      alert("You need to be logged in to send a request.");
     }
   }
   
   function acceptRequest (requestId) {
-    var user1 = requestId.user1;
-    var user2 = requestId.user2;
-    pair(user1, user2);
-  }
-  
-  function pair (user1, user2) {
-    user1.partner = user2;
-    user2.partner = user1;
-  }
-  
-  function notify (user, notification) {
-    user.notify();
-  }
+    // grab current user
+    var currentUserAuthData = firebaseRef.getAuth();
 
+    if (currentUserAuthData) {
+      var senderId; // ID of user who sent pair request
+      var currentUserId = currentUserAuthData.uid; // ID of current user
+      
+      // grab request ref 
+      var user = usersRef.child(currentUserId); // grab current user ref
+      var request = user.child("requests").child(requestId); // grab request ref
+      
+      // get data of request
+      request.once('value', function (snapshot) {
+        // get data - ID of sender
+        senderId = snapshot.val().senderId;
+      });
+      
+      // pair the users
+      pair(currentUserId, senderId);
+      
+      // delete request
+      request.remove();
+      
+      alert("Your new partner is: " + senderId);
+    } else {
+      alert("You need to be logged in to accept a request.");
+    }
+  }
+  
+  function pair (user1Id, user2Id) {
+    // grab user partner refs
+    var user1Partner = usersRef.child(user1Id).child("partner");
+    var user2Partner = usersRef.child(user2Id).child("partner");
+    
+    // set partners
+    user1Partner.set(user2Id);
+    user2Partner.set(user1Id);
+    
+    console.log("Yay, partners paired.");
+  }
   
   
   
