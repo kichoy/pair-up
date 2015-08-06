@@ -1,6 +1,60 @@
 $(document).ready(function () {
   
   // ============================================
+  // Models
+  // ============================================
+  function User (username, partner, cohort, photo, requests) {
+    this.username = username;
+    this.partner = partner; // boolean
+    this.cohort = cohort;
+    this.photo = photo; // string link
+    this.requests = requests; // array of requests
+  }
+  
+  User.prototype.update = function (username, partner, photo, cohort, requests) {
+    // update properties
+    this.username = username;
+    this.partner = partner;
+    this.photo = photo;
+    this.cohort = cohort;
+    this.requests = requests;
+    
+    cohort.push(this);
+  };
+
+  function Group (cohortNumber, members) {
+    this.cohortNumber = cohortNumber;
+    this.members = members;
+  }
+  
+  // Push username (not user) into group object
+  // do not push entire user object bc that would be excessive and redundant 
+  Group.prototype.push = function (username) {
+    var membersArray = this.members;
+    membersArray.push(username);
+    this.members = membersArray;
+  };
+  
+  // function Notification (user, type) {
+  //   this.user = user;
+  //   this.type = type; // type of notification (pair req, accepeted req, etc)
+  // }
+  
+  // Notification.prototype.something = function () {
+    
+  // };
+  
+  
+  
+  function PairRequest (senderId, recipientId) {
+    this.senderId = senderId;
+    this.recipientId = recipientId;
+  }
+  
+  
+  
+
+  // ============================================
   // Firebase 
   // ============================================
   var firebaseRef = new Firebase("https://pair-up.firebaseio.com/");
@@ -20,12 +74,12 @@ $(document).ready(function () {
   
   usersRef.on('child_added', add);
   
-  function add (idSnapshot) {
+  function add (userSnapshot) {
     // when an item is added to the index, fetch the data
-    var user = idSnapshot.val();
-    
+    var user = userSnapshot.val();
+    var userKey = userSnapshot.key();
     // display user on list
-    displayUser(user);
+    displayUser(user, userKey);
   }
   
   function getUsersByCohort (cohortNumber) {
@@ -38,74 +92,7 @@ $(document).ready(function () {
   
   
   // ============================================
-  // Models
-  // ============================================
-  function User (username, partner, cohort, photo) {
-    this.username = username;
-    this.partner = partner; // boolean
-    this.cohort = cohort;
-    this.photo = photo; // string link
-  }
-  
-  User.prototype.update = function (username, partner, photo, cohort) {
-    // update properties
-    this.username = username;
-    this.partner = partner;
-    this.photo = photo;
-    this.cohort = cohort;
-    
-    cohort.push(this);
-  };
-
-  function Group (cohortNumber, members) {
-    this.cohortNumber = cohortNumber;
-    this.members = members;
-  }
-  
-  // Push username (not user) into group object
-  // do not push entire user object bc that would be excessive and redundant 
-  Group.prototype.push = function (username) {
-    var membersArray = this.members;
-    membersArray.push(username);
-    this.members = membersArray;
-  };
-  
-  
-  // ### Testing ###
-  var cohort1; // cohort - list of users
-  // usersRef.set({}); // clear db 
-  
-  function createTestData (amount) {
-    cohort1 = new Group (1, []); 
-    
-    // create multiple users and add them into a cohort Group
-    for (var i = 0; i < amount; i++) {
-      var user = new User (
-        "User" + i,
-        "",
-        1,
-        "img/ninja-icon-avatar.png"
-      );
-      cohort1.push(user.username); // push into cohort Group
-      usersRef.child(user.username).set(user); // set user in db 
-    }
-    
-    
-    groupsRef.set({
-      cohort1,
-      cohort2: {
-      cohortNumber: 2,
-      members: ['jack', 'jill']
-      }
-    }); // set the groups in db
-  }
-  createTestData(9);
-  
-  
-  
-  
-  // ============================================
-  // Views
+  // Show stuff
   // ============================================
   function displayUsers (users) {
     
@@ -141,7 +128,7 @@ $(document).ready(function () {
   
   }
   
-  function displayUser (user) {
+  function displayUser (user, userKey) {
     // get the unordered list 
     var list = document.getElementById("user-list");
     
@@ -160,7 +147,7 @@ $(document).ready(function () {
     img.alt = user.username;
     
     var button = document.createElement("button");
-    button.id = user.username;
+    button.id = userKey; // ID is the users unique key
     button.className = "btn btn-default";
     button.innerHTML = "Request Partner";
     // click event - when clicked, send pair request to that user
@@ -180,13 +167,32 @@ $(document).ready(function () {
     list.appendChild(listItem);    
   }
   
-  
-  
-  
-  // ============================================
-  // Load users
-  // ============================================
-  // displayUsers(cohortArray);
+  function displayPartnerRequest (partnerName) {
+		// partner request display
+		var container = document.getElementById("partner-requests");
+		var listItem = document.createElement("div");
+		listItem.className = "list-group";
+		listItem.style.paddingTop = "20px";
+		
+		var linkContainer = document.createElement("a");
+		linkContainer.href = "#";
+		linkContainer.className = "list-group-item active";
+		
+		var requestHeader = document.createElement("h4");
+		requestHeader.className = "list-group-item-heading";
+		requestHeader.innerHTML = partnerName;
+		
+		var requestMessage = document.createElement("p");
+		requestMessage.className = "list-group-item-text";
+		requestMessage.innerHTML = "Wants to be your partner.<br>(Click to pair)";
+		
+		linkContainer.appendChild(requestHeader);
+		linkContainer.appendChild(requestMessage);
+		
+		listItem.appendChild(linkContainer);
+		
+		container.appendChild(listItem);    
+  }
   
   
   
@@ -211,11 +217,12 @@ $(document).ready(function () {
       authData.github.username,
       "",
       1,
-      "img/ninja-icon-avatar.png"
+      "img/ninja-icon-avatar.png",
+      {}
     );
 
     var singleUserRef = usersRef.child(authData.uid);
-    singleUserRef.set(user);
+    // singleUserRef.set(user);
   }
   
   // Callback to handle the result of the authentication
@@ -268,8 +275,28 @@ $(document).ready(function () {
   		// show dash info in header/navbar
   		var githubLoginButton = document.getElementById('github-login');
   		var usernameDisplay = document.getElementById("username-display");
-  		usernameDisplay.innerHTML = "Welcome, " + user.username;
+  		usernameDisplay.innerHTML = "Welcome, " + "<b>" + user.username + "</b>";
   		githubLoginButton.style.display = "none";
+  		
+  		// show requests
+  		var requestsRef = userRef.child("requests");
+  		// if there are any requests
+  		if (requestsRef) {
+  		  // iterate each request
+  		  requestsRef.on("child_added", function (snapshot) {
+  		    var request = snapshot.val();
+  		    
+  		    // grab senders username (not id)
+  		    var senderRef = usersRef.child(request.senderId);
+  		    var senderUsername;
+  		    senderRef.once("value", function (data) {
+  		      senderUsername = data.val().username;
+  		    });
+  		    
+  		    displayPartnerRequest(senderUsername); // display the request
+  		  });
+  		}
+  		
   	});
   
   }
@@ -313,10 +340,7 @@ $(document).ready(function () {
   // } else {
   //   console.log("User is logged out");
   // }
-  
-  
-  
-  
+
   
   
   
@@ -329,16 +353,23 @@ $(document).ready(function () {
   // ============================================
 
   function sendPairRequest (recipientId) {
-    alert("Request sent to: " + recipientId);
+    // grab current user
+    var currentUserAuthData = firebaseRef.getAuth();
     
-    // notification system
-    
-    // grab user
-    var user2 = recipientId; 
-    // create notification
-    var request = new PairRequest(this.user, user2); 
-    // send notification 
-    notify(user, request);
+    // if user exists
+    if (currentUserAuthData) {
+      console.log(currentUserAuthData.uid);
+      
+      // grab recipient user ref
+      var recipientUserRef = usersRef.child(recipientId);
+      // create pair request
+      var request = new PairRequest(currentUserAuthData.uid, recipientId); 
+      
+      // send pair request - attatch to recipient
+      recipientUserRef.child("requests").push(request);
+      
+      alert("Request sent to: " + recipientId);      
+    }
   }
   
   function acceptRequest (requestId) {
@@ -355,13 +386,47 @@ $(document).ready(function () {
   function notify (user, notification) {
     user.notify();
   }
+
   
-  // User1 (user logged in) sends pair request to User2
-  var User1 = {}; // this.user;
-  User1.sendPairRequest(User2); // .sendPairRequest notifies User2
   
-  // User2 accepts request, pair users
-  User2.acceptRequest(request);
+  
+  
+  
+  
+  
+  // ============================================
+  // Testing
+  // ============================================  
+  // ### Testing ###
+  var cohort1; // cohort - list of users
+  // usersRef.set({}); // clear db 
+  
+  function createTestData (amount) {
+    cohort1 = new Group (1, []); 
+    
+    // create multiple users and add them into a cohort Group
+    for (var i = 0; i < amount; i++) {
+      var user = new User (
+        "User" + i,
+        "",
+        1,
+        "img/ninja-icon-avatar.png",
+        {}
+      );
+      cohort1.push(user.username); // push into cohort Group
+      usersRef.child(user.username).set(user); // set user in db 
+    }
+    
+    
+    groupsRef.set({
+      cohort1,
+      cohort2: {
+      cohortNumber: 2,
+      members: ['jack', 'jill']
+      }
+    }); // set the groups in db
+  }
+  createTestData(9);  
   
 });
 
